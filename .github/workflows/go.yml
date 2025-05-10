@@ -21,7 +21,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           set -e
 
-          DEPLOY_DIR="/opt/tgbot"
+          DEPLOY_DIR="/opt/server-bot"
           SERVICE_NAME="tgbot"
 
           cd "$DEPLOY_DIR"
