@@ -27,7 +27,7 @@ jobs:
           cd "$DEPLOY_DIR"
           git fetch
           git reset --hard origin/master
-          git pull
+          git pull origin master
 
           go mod tidy
           go build -o tgbot main.go
