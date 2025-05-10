@@ -30,7 +30,7 @@ jobs:
           git pull
 
           go mod tidy
-          go build -o "$DEPLOY_DIR/tgbot"
+          go build -o tgbot main.go
           sudo systemctl restart "$SERVICE_NAEM.service"
 
           sudo systemctl status "$SERVICE_NAME.service" --no-pager
