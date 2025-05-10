@@ -1,0 +1,37 @@
+name: Go CI/CD
+
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Insall SSH key
+        uses: webfactory/ssh-agent@0.10.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy and Restart
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          set -e
+
+          DEPLOY_DIR="/opt/tgbot"
+          SERVICE_NAME="tgbot"
+
+          cd "$DEPLOY_DIR"
+          git fetch
+          git reset --hard origin/master
+          git pull
+
+          go mod tidy
+          go build -o "$DEPLOY_DIR/tgbot"
+          sudo systemctl restart "$SERVICE_NAEM.service"
+
+          sudo systemctl status "$SERVICE_NAME.service" --no-pager
+          EOF
