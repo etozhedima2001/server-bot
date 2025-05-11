@@ -32,8 +32,8 @@ jobs:
           rm tgbot
           go build -o tgbot main.go
           whoami
-          systemctl restart tgbot.service
+          sudo systemctl restart tgbot.service
 
-          systemctl status tgbot.service --no-pager
+          sudo systemctl status tgbot.service --no-pager
 
           EOF
