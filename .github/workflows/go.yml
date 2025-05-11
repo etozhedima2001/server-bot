@@ -34,9 +34,8 @@ jobs:
           go mod tidy
           rm tgbot
           go build -o tgbot main.go
-          su - tgbot
-          systemctl restart tgbot.service
+          sudo -u tgbot systemctl restart tgbot.service
 
-          systemctl status tgbot.service --no-pager
+          sudo -u tgbot systemctl status tgbot.service --no-pager
 
           EOF
