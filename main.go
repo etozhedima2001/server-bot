@@ -65,7 +65,7 @@ func getGitHubActionsStatus(repoOwner, repoName, githubToken string) (string, er
 func main() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
 	githubToken := os.Getenv("GITHUB_TOKEN")
-        repoOwner := "etozhedima2000"
+        repoOwner := "etozhedima2001"
         repoName := "server-bot"
 	if err != nil {
 		log.Panic(err)
