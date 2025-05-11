@@ -35,6 +35,7 @@ jobs:
           rm tgbot
           go build -o tgbot main.go
           sudo -u tgbot /usr/bin/systemctl restart tgbot.service
+
           sudo -u tgbot /usr/bin/systemctl status tgbot.service --no-pager
 
           EOF
