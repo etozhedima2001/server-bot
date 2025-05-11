@@ -3,12 +3,70 @@ package main
 import (
 	"log"
 	"os"
+	"encoding/json"
+	"fmt"
+	"net/http"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+type GitHubWorkflowRun struct {
+	Status     string `json:"status"`
+	Conclusion string `json:"conclusion"`
+	HTMLURL    string `json:"html_url"`
+}
+
+func getGitHubActionsStatus(repoOwner, repoName, githubToken string) (string, error) {
+	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/actions/runs?per_page=1", repoOwner, repoName)
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("ошибка создания запроса: %v", err)
+	}
+
+	req.Header.Set("Authorization", "token "+githubToken)
+	req.Header.Set("Accept", "application/vnd.github.v3+json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("ошибка HTTP-запроса: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("GitHub API вернул код %d", resp.StatusCode)
+	}
+
+	var result struct {
+		WorkflowRuns []GitHubWorkflowRun `json:"workflow_runs"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return "", fmt.Errorf("ошибка парсинга JSON: %v", err)
+	}
+
+	if len(result.WorkflowRuns) == 0 {
+		return "Нет данных о workflow", nil
+	}
+
+	run := result.WorkflowRuns[0]
+	return fmt.Sprintf(
+		"**Статус CI/CD (GitHub Actions)**\n"+
+			"🔹 **Статус:** `%s`\n"+
+			"🔹 **Результат:** `%s`\n"+
+			"🔹 **Ссылка:** [Открыть Workflow](%s)",
+		run.Status,
+		run.Conclusion,
+		run.HTMLURL,
+	), nil
+}
+
+
 func main() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
+	githubToken := os.Getenv("GITHUB_TOKEN")
+        repoOwner := "etozhedima2000"
+        repoName := "server-bot"
 	if err != nil {
 		log.Panic(err)
 	}
@@ -31,9 +89,17 @@ func main() {
 
 		switch update.Message.Text {
 		case "/start":
-			msg.Text = "Привет! Я бот для управления сервером. Доступные команды:\n/status - проверить сервер\n/restart - перезагрузить службу"
+			msg.Text = "Привет! Я бот для управления сервером. Доступные команды:\n/status - проверить сервер\n/cicd - узнать статус ci/cd"
 		case "/status":
 			msg.Text = "Сервер работает!"
+		case "/cicd":
+			status, err := getGitHubActionsStatus(repoOwner, repoName, githubToken)
+			if err != nil {
+				msg.Text = "Ошибка: " + err.Error()
+			} else {
+				msg.Text = status
+				msg.ParseMode = "Markdown"
+			}
 		default:
 			msg.Text = "Неизвестная команда."
 		}
