@@ -35,5 +35,5 @@ jobs:
           rm tgbot
           go build -o tgbot main.go
           kill $(cat "$DEPLOY_DIR"/bot.pid) 2>/dev/null || true
-        nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
+          nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
           EOF
