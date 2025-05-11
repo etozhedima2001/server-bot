@@ -22,7 +22,6 @@ jobs:
           set -e
 
           DEPLOY_DIR="/opt/server-bot"
-          SERVICE_NAME="tgbot"
 
           cd "$DEPLOY_DIR"
           git fetch
@@ -30,8 +29,9 @@ jobs:
           git pull origin master
 
           go mod tidy
+          rm tgbot
           go build -o tgbot main.go
-          sudo -n systemctl restart tgbot.service
+          sudo systemctl restart tgbot.service
 
-          sudo -n systemctl status tgbot.service --no-pager
+          sudo systemctl status tgbot.service --no-pager
           EOF
