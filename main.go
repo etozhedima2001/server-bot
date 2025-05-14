@@ -37,7 +37,7 @@ func getGitHubActionsStatus(repoOwner, repoName, githubToken string) (string, er
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("GitHub API вернул код %d, %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("GitHub API вернул %d, %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {
