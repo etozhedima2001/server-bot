@@ -25,7 +25,7 @@ func getGitHubActionsStatus(repoOwner, repoName, githubToken string) (string, er
 		return "", fmt.Errorf("ошибка создания запроса: %v", err)
 	}
 
-	req.Header.Set("Authorization", "Bearer "+githubToken)
+	req.Header.Set("Authorization", "token "+githubToken)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
 	client := &http.Client{}
