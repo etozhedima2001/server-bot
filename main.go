@@ -97,7 +97,7 @@ func main() {
 		case "/start":
 			msg.Text = "Привет! Я бот для управления сервером. Доступные команды:\n/status - проверить сервер\n/cicd - узнать статус ci/cd"
 		case "/status":
-			msg.Text = "Сервер работает!"
+			msg.Text = "Сервер работает!test"
 		case "/cicd":
 			status, err := getGitHubActionsStatus(repoOwner, repoName, githubToken)
 			if err != nil {
