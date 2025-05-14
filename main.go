@@ -71,6 +71,10 @@ func main() {
 		log.Panic(err)
 	}
 
+	if githubToken == "" {
+		log.Panic("github токен не установлен")
+	}
+
 	bot.Debug = true // Включить логирование
 
 	log.Printf("Бот запущен: %s", bot.Self.UserName)
