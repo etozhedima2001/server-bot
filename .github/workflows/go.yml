@@ -35,10 +35,6 @@ jobs:
           rm -f tgbot
           go build -o tgbot main.go || { echo "Ошибка сборки"; exit 1; }
           
-          PID_old=$(ps aux | grep tgbot | awk '{print $2}' | head -n 1)
-          if [ -n "$PID_old" ]; then
-            kill -9 "$PID_old"
-          fi
 
           if [ -f bot.pid ]; then
             PID=$(cat bot.pid)
