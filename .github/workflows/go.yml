@@ -43,4 +43,5 @@ jobs:
 
           nohup ./tgbot > bot.log 2>&1 & echo $! > bot.pid
           echo "Бот перезапущен"
+          tail -n 20 bot.log
           EOF
