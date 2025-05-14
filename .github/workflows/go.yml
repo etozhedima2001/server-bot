@@ -44,7 +44,7 @@ jobs:
             rm bot.pid
           fi
 
-          nohup ./tgbot > bot.log 2>&1 & echo $! > bot.pid
+          nohup env TELEGRAM_TOKEN="${{ secrets.TELEGRAM_TOKEN }}" GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" ./tgbot > bot.log 2>&1 & echo $! > bot.pid
           echo "Бот перезапущен"
           tail -n 20 bot.log
           EOF

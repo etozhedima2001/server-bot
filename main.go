@@ -65,7 +65,11 @@ func getGitHubActionsStatus(repoOwner, repoName, githubToken string) (string, er
 
 
 func main() {
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_TOKEN"))
+	telegramToken := os.Getenv("TELEGRAM_TOKEN")
+	if telegramToken == "" {
+        log.Fatal("❌ TELEGRAM_TOKEN не установлен! Проверьте переменные окружения.")
+    }
+	bot, err := tgbotapi.NewBotAPI(telegramToken)
 	githubToken := os.Getenv("GITHUB_TOKEN")
         repoOwner := "etozhedima2001"
         repoName := "server-bot"
