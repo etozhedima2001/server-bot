@@ -71,8 +71,8 @@ func main() {
     }
 	bot, err := tgbotapi.NewBotAPI(telegramToken)
 	githubToken := os.Getenv("GITHUB_TOKEN")
-        repoOwner := "etozhedima2001"
-        repoName := "server-bot"
+    repoOwner := "etozhedima2001"
+    repoName := "server-bot"
 	if err != nil {
 		log.Panic(err)
 	}
