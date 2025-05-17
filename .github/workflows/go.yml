@@ -21,21 +21,18 @@ jobs:
 
       - name: Deploy and Restart
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} /bin/bash << 'EOF'
-          set -euxo pipefail
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
 
-          DEPLOY_DIR="/opt/server-bot"
-          cd "$DEPLOY_DIR"
+          cd /opt/server-bot
+          git config --global --add safe.directory /opt/server-bot
 
-          git fetch --all
+          git fetch
           git reset --hard origin/master
-          git clean -fd
-
-          rm tgbot
+          git pull origin master
+          rm /opt/server-bot/tgbot
           go mod tidy
-          go build -o tgbot main.go || { echo "Ошибка сборки"; exit 1; }
+          go build -o tgbot main.go
           
-
           kill $(cat /opt/server-bot/bot.pid) 2>/dev/null || true
 
           nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
