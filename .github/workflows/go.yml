@@ -36,7 +36,7 @@ jobs:
           go build -o tgbot main.go || { echo "Ошибка сборки"; exit 1; }
           
 
-          kill $(cat /root/tgbot/bot.pid) 2>/dev/null || true
+          kill $(cat /opt/server-bot/bot.pid) 2>/dev/null || true
 
           nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
           echo "Бот перезапущен"
