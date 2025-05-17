@@ -31,6 +31,7 @@ jobs:
           git reset --hard origin/master
           git clean -fd
 
+          rm tgbot
           go mod tidy
           go build -o tgbot main.go || { echo "Ошибка сборки"; exit 1; }
           
