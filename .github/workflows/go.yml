@@ -32,17 +32,11 @@ jobs:
           git clean -fd
 
           go mod tidy
-          rm -f tgbot
           go build -o tgbot main.go || { echo "Ошибка сборки"; exit 1; }
           
 
-          if [ -f bot.pid ]; then
-            PID=$(cat bot.pid)
-            kill -9 "$PID" 2>/dev/null || true
-            rm bot.pid
-          fi
+          kill $(cat /root/tgbot/bot.pid) 2>/dev/null || true
 
-          nohup ./tgbot > bot.log 2>&1 & echo $! > bot.pid
+          nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
           echo "Бот перезапущен"
-          tail -n 20 bot.log
           EOF
