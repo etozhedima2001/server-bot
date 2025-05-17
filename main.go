@@ -71,6 +71,9 @@ func main() {
     }
 	bot, err := tgbotapi.NewBotAPI(telegramToken)
 	githubToken := os.Getenv("GITHUB_TOKEN")
+	if githubToken == "" {
+		log.Panic("❌ GITHUB_TOKEN не установлен! Проверьте переменные окружения.")
+	}
     repoOwner := "etozhedima2001"
     repoName := "server-bot"
 	if err != nil {
