@@ -80,10 +80,6 @@ func main() {
 		log.Panic(err)
 	}
 
-	if githubToken == "" {
-		log.Panic("github токен не установлен")
-	}
-
 	bot.Debug = true // Включить логирование
 
 	log.Printf("Бот запущен: %s", bot.Self.UserName)
@@ -104,7 +100,7 @@ func main() {
 		case "/start":
 			msg.Text = "Привет! Я бот для управления сервером. Доступные команды:\n/status - проверить сервер\n/cicd - узнать статус ci/cd"
 		case "/status":
-			msg.Text = "Сервер работает!"
+			msg.Text = "Сервер работает!test success"
 		case "/cicd":
 			status, err := getGitHubActionsStatus(repoOwner, repoName, githubToken)
 			if err != nil {
