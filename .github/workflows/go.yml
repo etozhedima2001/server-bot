@@ -19,29 +19,27 @@ jobs:
       - name: Build
         run: GOOS=linux GOARCH=amd64 go build -o tgbot
 
-      - name: Upload binary
-        uses: appleboy/scp-action@v0.1.7
+      - name: install SSH key
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "tgbot"
-          target: "/opt/server-bot/"
-      
-      - name: Restart service via nohup
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd /opt/server-bot
-            pkill -f "./tgbot" || true
-            sleep 3
-            chmod +x tgbot
-            nohup ./tgbot > bot.log 2>&1 & echo $! > bot.pid
-            sleep 5
-            if ! ps -p $(cat bot.pid) > /dev/null; then
-              echo "Error: Process failed to start"
-              exit 1
-            fi
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: ci
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd /opt/server-bot
+          git pull origin master
+
+      - name: restart and cd
+        run:
+          sleep 5
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          cd /opt/server-bot
+          rm tgbot
+          go mod tidy
+          sleep 5
+          go build -o tgbot main.go
+          kill $(cat /root/tgbot/bot.pid) 2>/dev/null || true
+          nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
+          EOF
+          
