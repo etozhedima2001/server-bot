@@ -24,22 +24,17 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.SSH_KEY }}
 
-      - name: ci
+      - name: cicd
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           cd /opt/server-bot
           git pull origin master
-
-      - name: restart and cd
-        run:
           sleep 5
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          cd /opt/server-bot
-          rm tgbot
+          rm -f tgbot
           go mod tidy
           sleep 5
           go build -o tgbot main.go
-          kill $(cat /root/tgbot/bot.pid) 2>/dev/null || true
+          kill $(cat /opt/server-bot/bot.pid) 2>/dev/null || true
           nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
           EOF
           
