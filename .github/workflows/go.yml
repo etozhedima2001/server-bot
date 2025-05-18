@@ -11,30 +11,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Insall SSH key
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: Setup Go
+        uses: actions/setup-go@v4
         with:
-          ssh-private-key: ${{ secrets.SSH_KEY }}
+          go-version: '1.21'
+
+      - name: Build
+        run: GOOS=linux GOARCH=amd64 go build -o tgbot
+
+      - name: Upload binary
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: "tgbot"
+          target: "/opt/server-bot/"
       
-      - name: check user
-        run: whoami
-
-      - name: Deploy and Restart
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-
-          cd /opt/server-bot
-          git config --global --add safe.directory /opt/server-bot
-
-          git fetch
-          git reset --hard origin/master
-          git pull origin master
-          rm /opt/server-bot/tgbot
-          go mod tidy
-          go build -o tgbot main.go
-          
-          kill $(cat /opt/server-bot/bot.pid) 2>/dev/null || true
-
-          nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
-          echo "Бот перезапущен"
-          EOF
+      - name: Restart service via nohup
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/server-bot
+            pkill -f "./tgbot" || true
+            chmod +x tgbot
+            nohup ./tgbot > bot.log 2>&1 &
