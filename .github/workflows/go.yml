@@ -37,5 +37,11 @@ jobs:
           script: |
             cd /opt/server-bot
             pkill -f "./tgbot" || true
+            sleep 3
             chmod +x tgbot
-            nohup ./tgbot > bot.log 2>&1 &
+            nohup ./tgbot > bot.log 2>&1 & echo $! > bot.pid
+            sleep 5
+            if ! ps -p $(cat bot.pid) > /dev/null; then
+              echo "Error: Process failed to start"
+              exit 1
+            fi
