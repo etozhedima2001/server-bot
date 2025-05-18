@@ -35,6 +35,6 @@ jobs:
           sleep 5
           go build -o tgbot main.go
           kill $(cat /opt/server-bot/bot.pid) 2>/dev/null || true
-          TELEGRAM_TOKEN='${{ secrets.TELEGRAM_TOKEN }}' nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
+          TELEGRAM_TOKEN='${{ secrets.TELEGRAM_TOKEN }}' GITHUB_TOKEN='${{ secrets.GITHUB_TOKEN }}' nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
           EOF
           
