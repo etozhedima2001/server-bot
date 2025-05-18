@@ -11,11 +11,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-
       - name: install SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -29,7 +24,8 @@ jobs:
           sleep 5
           rm -f tgbot
           go mod tidy
-          sleep 5
+          export TELEGRAM_TOKEN='$TELEGRAM_TOKEN'
+          export GITHUB_TOKEN='$GITHUB_TOKEN'
           go build -o tgbot main.go
           kill $(cat /opt/server-bot/bot.pid) 2>/dev/null || true
           nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
