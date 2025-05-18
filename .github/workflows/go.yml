@@ -16,9 +16,6 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Build
-        run: GOOS=linux GOARCH=amd64 go build -o tgbot
-
       - name: install SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -35,6 +32,10 @@ jobs:
           sleep 5
           go build -o tgbot main.go
           kill $(cat /opt/server-bot/bot.pid) 2>/dev/null || true
-          TELEGRAM_TOKEN='${{ secrets.TELEGRAM_TOKEN }}' GITHUB_TOKEN='${{ secrets.GITHUB_TOKEN }}' nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
+          nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
           EOF
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
           
