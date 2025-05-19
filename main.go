@@ -81,10 +81,19 @@ func main() {
 		log.Panic(err)
 	}
 
-	githubToken := os.Getenv("GITHUB_TOKEN")
-	if githubToken == "" {
-		log.Panic("❌ GITHUB_TOKEN не установлен! Проверьте переменные окружения.")
+	// githubToken := os.Getenv("GITHUB_TOKEN")
+	// if githubToken == "" {
+	// 	log.Panic("❌ GITHUB_TOKEN не установлен! Проверьте переменные окружения.")
+	// }
+	gh_tokenBytes, err := os.ReadFile("gh_token")
+	if err != nil {
+		log.Fatal("Ошибка чтения гитхаб токена %v", err)
 	}
+	githubToken := strings.TrimSpace(string(gh_tokenBytes))
+	if err != nil {
+		log.Panic(err)
+	}
+
     repoOwner := "etozhedima2001"
     repoName := "server-bot"
 	if err != nil {
