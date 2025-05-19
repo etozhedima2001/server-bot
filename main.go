@@ -65,11 +65,21 @@ func getGitHubActionsStatus(repoOwner, repoName, githubToken string) (string, er
 
 
 func main() {
-	telegramToken := os.Getenv("TELEGRAM_TOKEN")
-	if telegramToken == "" {
-        log.Fatal("❌ TELEGRAM_TOKEN не установлен! Проверьте переменные окружения.")
-    }
+	//telegramToken := os.Getenv("TELEGRAM_TOKEN")
+	//if telegramToken == "" {
+    //    log.Fatal("❌ TELEGRAM_TOKEN не установлен! Проверьте переменные окружения.")
+    //}
+	//bot, err := tgbotapi.NewBotAPI(telegramToken)
+	tokenBytes, err := os.ReadFile("tg_token")
+	if err != nil {
+		log.Fatal("Ошибка чтения телеграм токена %v", err)
+	}
+	telegramToken := strings.TrimSpace(string(tokenBytes))
 	bot, err := tgbotapi.NewBotAPI(telegramToken)
+	if err != nil {
+		log.Panic(err)
+	}
+
 	githubToken := os.Getenv("GITHUB_TOKEN")
 	if githubToken == "" {
 		log.Panic("❌ GITHUB_TOKEN не установлен! Проверьте переменные окружения.")
