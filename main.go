@@ -8,6 +8,11 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -64,6 +69,75 @@ func getGitHubActionsStatus(repoOwner, repoName, githubToken string) (string, er
 	), nil
 }
 
+func handleWebhook(bot *tgbotapi.BotAPI, webhookSecret string, chatID int64) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		eventType := r.Header.Get("X-GitHub-Event")
+        if eventType != "workflow_run" {
+            http.Error(w, "Unknown event", http.StatusBadRequest)
+            return
+        }
+
+        body, err := io.ReadAll(r.Body)
+        if err != nil {
+            http.Error(w, "Error reading body", http.StatusInternalServerError)
+            return
+        }
+        r.Body = io.NopCloser(bytes.NewBuffer(body))
+
+        sig := r.Header.Get("X-Hub-Signature-256")
+        if sig == "" {
+            http.Error(w, "Missing signature", http.StatusUnauthorized)
+            return
+        }
+
+        mac := hmac.New(sha256.New, []byte(webhookSecret))
+        mac.Write(body)
+        expectedMAC := hex.EncodeToString(mac.Sum(nil))
+        expectedSig := "sha256=" + expectedMAC
+
+        if !hmac.Equal([]byte(sig), []byte(expectedSig)) {
+            http.Error(w, "Invalid signature", http.StatusUnauthorized)
+            return
+        }
+
+        var payload struct {
+            Action      string `json:"action"`
+            WorkflowRun struct {
+                Status     string `json:"status"`
+                Conclusion string `json:"conclusion"`
+                HTMLURL    string `json:"html_url"`
+            } `json:"workflow_run"`
+        }
+
+        if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+            http.Error(w, "Error decoding JSON", http.StatusBadRequest)
+            return
+        }
+
+        if payload.Action != "completed" {
+            w.WriteHeader(http.StatusOK)
+            return
+        }
+
+        var msgText string
+        if payload.WorkflowRun.Conclusion == "success" {
+            msgText = fmt.Sprintf("✅ Workflow успешно завершен!\nСсылка: %s", payload.WorkflowRun.HTMLURL)
+        } else {
+            msgText = fmt.Sprintf("❌ Workflow завершился с ошибкой!\nСтатус: %s\nСсылка: %s", payload.WorkflowRun.Conclusion, payload.WorkflowRun.HTMLURL)
+        }
+
+        msg := tgbotapi.NewMessage(chatID, msgText)
+        if _, err := bot.Send(msg); err != nil {
+            log.Printf("Ошибка отправки сообщения: %v", err)
+        }
+
+        w.WriteHeader(http.StatusOK)
+	}
+}
 
 func main() {
 	//telegramToken := os.Getenv("TELEGRAM_TOKEN")
@@ -80,7 +154,7 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-
+	
 	// githubToken := os.Getenv("GITHUB_TOKEN")
 	// if githubToken == "" {
 	// 	log.Panic("❌ GITHUB_TOKEN не установлен! Проверьте переменные окружения.")
@@ -92,6 +166,30 @@ func main() {
 	githubToken := strings.TrimSpace(string(gh_tokenBytes))
 	if err != nil {
 		log.Panic(err)
+	}
+
+	chatIDBytes, err := os.ReadFile("chatID")
+	if err != nil {
+		log.Fatal("Ошибка чтения чата ID %v", err)
+	}
+	chatIDStr := strings.TrimSpace(string(chatIDBytes))
+	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
+	if err != nil {
+		log.Fatalf("Ошибка парсинга chat_id %v", err)
+	}
+
+	webhookSecretBytes, err := os.ReadFile("webhook")
+	if err != nil {
+		log.Fatalf("Ошибка чтения webhook %v", err)
+	}
+	webhookSecret := strings.TrimSpace(string(webhookSecretBytes))
+
+	go func() {
+		http.HandleFunc("/webhook", handleWebhook(bot, webhookSecret, chatID))
+		log.Println("Сервер вебхука запущен на :8080")
+		if err := http.ListenAndServe(":8080", nil); err != nil {
+			log.Fatalf("Ошибка запуска сервера вебхука %v", err)
+		}
 	}
 
     repoOwner := "etozhedima2001"
