@@ -24,11 +24,10 @@ jobs:
           sleep 5
           rm -f tgbot
           go mod tidy
-          export TELEGRAM_TOKEN='$TELEGRAM_TOKEN'
           export GITHUB_TOKEN='$GITHUB_TOKEN'
           go build -o tgbot main.go
           kill $(cat /opt/server-bot/bot.pid) 2>/dev/null || true
-          nohup ./tgbot > bot.log 2>&1 & echo $! >| bot.pid
+          nohup /opt/server-bot/tgbot > bot.log 2>&1 & echo $! >| bot.pid
           EOF
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
