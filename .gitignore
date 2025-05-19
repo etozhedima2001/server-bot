@@ -1,3 +1,5 @@
 *.log
 *.pid
 /tgbot
+tg_token
+
