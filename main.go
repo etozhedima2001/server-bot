@@ -190,7 +190,7 @@ func main() {
 		if err := http.ListenAndServe(":8080", nil); err != nil {
 			log.Fatalf("Ошибка запуска сервера вебхука %v", err)
 		}
-	}
+	}()
 
     repoOwner := "etozhedima2001"
     repoName := "server-bot"
