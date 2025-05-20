@@ -13,6 +13,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"strconv"
+	"gopkg.in/yaml.v3"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -139,12 +140,34 @@ func handleWebhook(bot *tgbotapi.BotAPI, webhookSecret string, chatID int64) htt
 	}
 }
 
+type Config struct {
+	GitHub struct {
+		Owner		string `yaml:"owner"`
+		Repo		string `yaml:"repo"`
+		TokenFile	string `yaml:"token_file"`
+	} `yaml:"github"`
+
+	Telegram struct {
+		TokenFile string `yaml:"token_file"`
+		ChatIDFile string `yaml:"chat_id_file"`
+	} `yaml:"telegram"`
+}
+
+func loadConfig(path string) (*Config, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var config Config
+	if err := yaml.Unmarshal(data, &config); err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
 func main() {
-	//telegramToken := os.Getenv("TELEGRAM_TOKEN")
-	//if telegramToken == "" {
-    //    log.Fatal("❌ TELEGRAM_TOKEN не установлен! Проверьте переменные окружения.")
-    //}
-	//bot, err := tgbotapi.NewBotAPI(telegramToken)
+	var currentConfig = config
+	//чтение токенов
 	tokenBytes, err := os.ReadFile("tg_token")
 	if err != nil {
 		log.Fatal("Ошибка чтения телеграм токена %v", err)
@@ -154,28 +177,26 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
-	
-	// githubToken := os.Getenv("GITHUB_TOKEN")
-	// if githubToken == "" {
-	// 	log.Panic("❌ GITHUB_TOKEN не установлен! Проверьте переменные окружения.")
-	// }
+
 	gh_tokenBytes, err := os.ReadFile("gh_token")
 	if err != nil {
-		log.Fatal("Ошибка чтения гитхаб токена %v", err)
+		log.Fatalf("Ошибка чтения гитхаб токена %v", err)
 	}
 	githubToken := strings.TrimSpace(string(gh_tokenBytes))
-	if err != nil {
-		log.Panic(err)
-	}
 
 	chatIDBytes, err := os.ReadFile("chatID")
 	if err != nil {
-		log.Fatal("Ошибка чтения чата ID %v", err)
+		log.Fatalf("Ошибка чтения чата ID %v", err)
 	}
 	chatIDStr := strings.TrimSpace(string(chatIDBytes))
 	chatID, err := strconv.ParseInt(chatIDStr, 10, 64)
 	if err != nil {
 		log.Fatalf("Ошибка парсинга chat_id %v", err)
+	}
+	
+	config, err := loadConfig("config.yaml")
+	if err != nil {
+		log.Fatalf("Ошибка загрузки конфига %v", err)
 	}
 
 	webhookSecretBytes, err := os.ReadFile("webhook")
@@ -191,12 +212,6 @@ func main() {
 			log.Fatalf("Ошибка запуска сервера вебхука %v", err)
 		}
 	}()
-
-    repoOwner := "etozhedima2001"
-    repoName := "server-bot"
-	if err != nil {
-		log.Panic(err)
-	}
 
 	bot.Debug = true // Включить логирование
 
@@ -216,17 +231,26 @@ func main() {
 
 		switch update.Message.Text {
 		case "/start":
-			msg.Text = "Привет! Я бот для управления сервером. Доступные команды:\n/status - проверить сервер\n/cicd - узнать статус ci/cd"
+			msg.Text = "Привет! Я бот для просмотра статусом workflow. Доступные команды:\n/status - проверить сервер\n/cicd - узнать последний статус workflow"
 		case "/status":
 			msg.Text = "Сервер работает!"
 		case "/cicd":
-			status, err := getGitHubActionsStatus(repoOwner, repoName, githubToken)
+			status, err := getGitHubActionsStatus(config.GitHub.Owner, config.GitHub.Repo, githubToken)
 			if err != nil {
 				msg.Text = "Ошибка: " + err.Error()
 			} else {
 				msg.Text = status
 				msg.ParseMode = "Markdown"
 			}
+		case "/setrepo":
+			args := strings.Split(update.Message.Text, " ")
+			if len(args) != 3 {
+				msg.Text = "Формат: /setrepo <owner> <repo>"
+				break
+			}
+			currentConfig.GitHub.Owner = args[1]
+			currentConfig.GitHub.Repo = args[2]
+			msg.Text = fmt.Sprintf("Теперь отслеживаю: %s/%s", args[1], args[2])
 		default:
 			msg.Text = "Неизвестная команда."
 		}
