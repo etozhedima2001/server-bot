@@ -166,8 +166,10 @@ func loadConfig(path string) (*Config, error) {
 }
 
 func main() {
-	var currentConfig = config
-	//чтение токенов
+	config, err := loadConfig("config.yaml")
+	if err != nil {
+		log.Fatalf("Ошибка загрузки конфига %v", err)
+	}
 	tokenBytes, err := os.ReadFile("tg_token")
 	if err != nil {
 		log.Fatal("Ошибка чтения телеграм токена %v", err)
@@ -194,10 +196,7 @@ func main() {
 		log.Fatalf("Ошибка парсинга chat_id %v", err)
 	}
 	
-	config, err := loadConfig("config.yaml")
-	if err != nil {
-		log.Fatalf("Ошибка загрузки конфига %v", err)
-	}
+	
 
 	webhookSecretBytes, err := os.ReadFile("webhook")
 	if err != nil {
