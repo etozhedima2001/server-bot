@@ -247,8 +247,8 @@ func main() {
 				msg.Text = "Формат: /setrepo <owner> <repo>"
 				break
 			}
-			currentConfig.GitHub.Owner = args[1]
-			currentConfig.GitHub.Repo = args[2]
+			config.GitHub.Owner = args[1]
+			config.GitHub.Repo = args[2]
 			msg.Text = fmt.Sprintf("Теперь отслеживаю: %s/%s", args[1], args[2])
 		default:
 			msg.Text = "Неизвестная команда."
