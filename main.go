@@ -232,7 +232,7 @@ func main() {
 		case "/start":
 			msg.Text = "Привет! Я бот для просмотра статусом workflow. Доступные команды:\n/status - проверить сервер\n/cicd - узнать последний статус workflow"
 		case "/status":
-			msg.Text = "Артееемка"
+			msg.Text = "раьбота"
 		case "/cicd":
 			status, err := getGitHubActionsStatus(config.GitHub.Owner, config.GitHub.Repo, githubToken)
 			if err != nil {
