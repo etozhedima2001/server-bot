@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/username/repo.git'
+                    url: 'https://github.com/etozhedima2001/server-bot.git'
             }
         }
 
